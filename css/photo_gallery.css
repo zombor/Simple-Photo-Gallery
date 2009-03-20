@@ -1,0 +1,6 @@
+ul#photo_gallery li {
+	list-style: none;
+	float: left;
+	margin-right: 10px;
+	text-align: center;
+}
