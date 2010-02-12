@@ -4,7 +4,7 @@
 *
 * @package        Auto_Modeler
 * @author         Jeremy Bush
-* @copyright      (c) 2008 Jeremy Bush
+* @copyright      (c) 2010 Jeremy Bush
 * @license        http://www.opensource.org/licenses/isc-license.txt
 */
 class Auto_Modeler_Core extends Model implements ArrayAccess
@@ -25,6 +25,8 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 
 	protected $validated = FALSE;
 
+	protected $lang = 'form_errors';
+
 	public function __construct($id = NULL)
 	{
 		parent::__construct();
@@ -32,7 +34,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 		if ($id != NULL)
 		{
 			// try and get a row with this ID
-			$data = $this->db->getwhere($this->table_name, array('id' => $id))->result(FALSE);
+			$data = db::builder()->from($this->table_name)->where('id', '=', $id)->execute($this->db)->as_array();
 
 			// try and assign the data
 			if (count($data) == 1 AND $data = $data->current())
@@ -62,6 +64,17 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 			$this->data[$key] = $value;
 	}
 
+	public function __sleep()
+	{
+		// Store only information about the object without db property
+		return array_diff(array_keys(get_object_vars($this)), array('db'));
+	}
+
+	public function __wakeup()
+	{
+		$this->db = Database::instance($this->db);
+	}
+
 	public function as_array()
 	{
 		return $this->data;
@@ -86,7 +99,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 				$key = $this->aliases[$key];
 
 			if (array_key_exists($key, $this->data))
-				$this->data[$key] = $value;
+				$this->$key = $value;
 		}
 	}
 
@@ -120,7 +133,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 		else
 		{
 			$this->validation = $data;
-			$errors = View::factory('form_errors')->set(array('errors' => $data->errors('form_errors')));
+			$errors = View::factory('form_errors')->set(array('errors' => $data->errors($this->lang)));
 			return $errors->render();
 		}
 	}
@@ -133,10 +146,10 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 		if ($status === TRUE)
 		{
 			if ($this->data['id']) // Do an update
-				return count($this->db->update($this->table_name, $this->data, array('id' => $this->data['id'])));
+				return count(db::update($this->table_name, array_diff_assoc($this->data, array('id' => $this->data['id'])), array('id' => $this->data['id'])));
 			else // Do an insert
 			{
-				$id = $this->db->insert($this->table_name, $this->data)->insert_id();
+				$id = db::insert($this->table_name, $this->data)->insert_id();
 				return ($this->data['id'] = $id);
 			}
 		}
@@ -149,7 +162,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	{
 		if ($this->data['id'])
 		{
-			return $this->db->delete($this->table_name, array('id' => $this->data['id']));
+			return db::delete($this->table_name, array('id' => $this->data['id']));
 		}
 	}
 
@@ -158,7 +171,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	// $direction - the direction to sort
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return $this->db->orderby($order_by, $direction)->get($this->table_name)->result(TRUE, inflector::singular(ucwords($this->table_name)).'_Model');
+		return db::builder()->from($this->table_name)->order_by($order_by, $direction)->execute($this->db)->as_object(inflector::singular(ucwords($this->table_name)).'_Model');
 	}
 
 	// Does a basic search on the table.
@@ -166,10 +179,10 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	// $order_by - the ORDER BY value to sort by
 	// $direction - the direction to sort
 	// $type - pass 'or' here to do a orwhere
-	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = '')
+	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
-		$function = $type.'where';
-		return $this->db->$function($where)->orderby($order_by, $direction)->get($this->table_name)->result(TRUE, inflector::singular(ucwords($this->table_name)).'_Model');
+		$function = $type.'_where';
+		return db::builder()->from($this->table_name)->$function($where)->order_by($order_by, $direction)->execute($this->db)->as_object(inflector::singular(ucwords($this->table_name)).'_Model');
 	}
 
 	// Returns an associative array to use in dropdowns and other widgets
@@ -181,7 +194,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	{
 		$rows = array();
 
-		$query = empty($where) ? $this->fetch_all($order_by) : $this->db->where($where)->orderby($order_by)->get($this->table_name)->result(TRUE, inflector::singular(ucwords($this->table_name)).'_Model');
+		$query = empty($where) ? $this->fetch_all($order_by) : $this->fetch_where($where, $order_by);
 
 		$array_display = is_array($display);
 
