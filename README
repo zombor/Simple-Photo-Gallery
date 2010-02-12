@@ -1,1 +1,22 @@
-The README text goes here.
+h1. Install
+
+To install the photo gallery module, follow these steps:
+
+* Ensure your application is using a Website_Controller. Gallery extends your site's website controller to blend into your site.
+* Copy the module folder to your kohana modules directory, and name it 'simple-photo-gallery'
+* Add @MODPATH.'simple-photo-gallery'@ to your module list in config.php
+* If the default config/image.php does not suit your enviornment, create an image.php config file in your application folder, and configure it as in the "Docs":http://docs.kohanaphp.com/libraries/image#configuring_the_library
+* Copy the contents of css, js, and images to your webroot.
+* Add the following to your views/template.php file in the <head> section: @<?php stylesheet::render(); javascript::render()?>@
+* Create @views/media/photos/@ in your application folder and chmod it 777
+* Ensure that you have no routes that would block /album, /photo, /admin/album and /admin/photo
+* Create a link somewhere on your site to link to the main album page, /album.
+* Run the provided schema.sql file to create the default tables.
+
+h1. Features
+
+* Multiple Albums
+* Configurable pagination of albums (ex. 16 photos per page)
+* Configurable image width/height and thumbnail width/height
+* Admin interface for editing titles and order of photos and albums
+* Uses "Colorbox":http://colorpowered.com/colorbox/ for displaying photos
