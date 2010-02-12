@@ -1,0 +1,11 @@
+To install the photo gallery module, follow these steps:
+
+    * Copy the module folder to your kohana modules directory, and name it 'simple-photo-gallery'
+    * Add MODPATH.'simple-photo-gallery' to your module list in config.php
+    * If the default config/image.php does not suit your enviornment, create an image.php config file in your application folder, and configure it as in the Docs
+    * Copy the contents of css, js, and images to your webroot.
+    * Add the following to your views/template.php file in the <head> section: <?php stylesheet::render(); javascript::render()?>
+    * Create views/media/photos/ in your application folder and chmod it 777
+    * Ensure that you have no routes that would block /album, /photo, /admin/album and /admin/photo
+    * Create a link somewhere on your site to  your gallery: /album.
+

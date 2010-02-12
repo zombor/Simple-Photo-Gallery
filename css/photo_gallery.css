@@ -1,0 +1,37 @@
+table#photo_gallery {
+	width: 99%;
+}
+
+ul#photo_gallery li {
+	float: left;
+	width: 150px;
+	height: 150px;
+}
+
+table#photo_gallery td {
+	list-style: none;
+	text-align: center;
+	width: 33%;
+	padding-bottom: 1em;
+	padding-top: 1em;
+}
+
+table#photo_gallery td.cell_0, table#photo_gallery td.cell_2 {
+	border-bottom: 1px solid #F1F1F2;
+}
+
+table#photo_gallery td.cell_1 {
+	border-left: 1px solid #F1F1F2;
+	border-right: 1px solid #F1F1F2;
+	border-bottom: 1px solid #F1F1F2;
+}
+
+table#photo_gallery td img {
+	margin-left: auto;
+	margin-right: auto;
+	display: inline;
+}
+
+#info {
+	clear: both;
+}
