@@ -1,7 +1,7 @@
 <ul id="album_list">
 	<?php foreach ($albums as $album):?>
 	<?php
-		$photos = $album->find_related('photos');
+		$photos = $album->find_related('photos', array(), 'order');
 		$photo = count($photos) ? $photos->current() : Auto_Modeler_ORM::factory('photo');
 	?>
 	<li>
