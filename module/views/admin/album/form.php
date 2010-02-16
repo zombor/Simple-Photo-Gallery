@@ -6,4 +6,4 @@
 	<li><label for="album_order">Album Order: </label><?=form::input('album_order', $album->album_order)?></li>
 	<li><?=form::submit('create', $action.' Album')?></li>
 </ul>
-<?=form::close()?>
+</form>

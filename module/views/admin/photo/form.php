@@ -6,4 +6,4 @@
 	<li><label for="photo">File: </label><?=form::upload('photo')?></li>
 	<li><?=form::submit('create', $action.' Photo')?></li>
 </ul>
-<?=form::close()?>
+</form>

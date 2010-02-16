@@ -1,4 +1,5 @@
-<?php
+<?php defined('SYSPATH') or die('No direct script access.');
+
 include Kohana::find_file('controllers', 'admin/admin_website');
 class Photo_Controller extends Admin_Website_Controller
 {
@@ -17,15 +18,16 @@ class Photo_Controller extends Admin_Website_Controller
 			{
 				$photo->set_fields($_POST);
 				// Put the photo at the end
-				$photo->photo_order = count(Auto_Modeler_ORM::factory('photo')->fetch_where(array('album_id' => $photo->album_id)))+1;
-
 				$photo->photo_filename = $_FILES['photo']['name'];
 				$photo->album_id = $album->id;
+				$current = Auto_Modeler_ORM::factory('photo')->fetch_where(array(array('album_id', '=', $photo->album_id)));
+				$photo->photo_order = $current->count()+1;
 				$photo->date = time();
 
-				if($photo->valid(array('album' => $album, 'photo' => $_FILES),
-				             array('save_image_file')))
-					$photo->save();
+				// Save the photo
+				gallery::process_upload($_FILES['photo'], $album, $photo);
+
+				$photo->save();
 
 				url::redirect('album/view/'.$album->url_name);
 			}
@@ -41,7 +43,7 @@ class Photo_Controller extends Admin_Website_Controller
 	public function edit($album_url, $photo)
 	{
 		$photo = new Photo_Model($album_url.'/'.$photo);
-		
+
 		if ( ! $photo->id)
 			Event::run('system.404');
 

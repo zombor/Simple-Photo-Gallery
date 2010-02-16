@@ -1,11 +1,11 @@
-<?php
+<?php defined('SYSPATH') or die('No direct script access.');
 
 class Album_Controller extends Photo_Website_Controller
 {
 	public function index()
 	{
-		javascript::add(array('jquery.colorbox', 'photo_effects'));
-		stylesheet::add(array('colorbox', 'colorbox-custom', 'photo_gallery'));
+		javascript::add(array('jquery.colorbox.js', 'photo_effects.js'));
+		stylesheet::add(array('colorbox.css', 'colorbox-custom.css', 'photo_gallery.css'));
 		$this->template->title = $this->template->heading = 'Photo Gallery';
 
 		$this->template->content = new View('album/index');
@@ -14,10 +14,10 @@ class Album_Controller extends Photo_Website_Controller
 
 	public function view($album_name = NULL)
 	{
-		javascript::add(array('jquery.colorbox', 'photo_effects'));
-		stylesheet::add(array('colorbox', 'colorbox-custom', 'photo_gallery'));
+		javascript::add(array('jquery.colorbox.js', 'photo_effects.js'));
+		stylesheet::add(array('colorbox.css', 'colorbox-custom.css', 'photo_gallery.css'));
 
-		$page_num = $this->input->get('page', 1);
+		$page_num = Input::instance()->get('page', 1);
 
 		$album = new Album_Model($album_name);
 		if ( ! $album->id)

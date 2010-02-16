@@ -1,4 +1,5 @@
-<?php
+<?php defined('SYSPATH') or die('No direct script access.');
+
 include Kohana::find_file('controllers', 'admin/admin_website');
 class Album_Controller extends Admin_Website_Controller
 {
@@ -24,7 +25,7 @@ class Album_Controller extends Admin_Website_Controller
 				$album->url_name = url::title($_POST['album_name']);
 
 				$album->save();
-				
+
 				url::redirect('admin/album/index');
 			}
 			catch (Kohana_User_Exception $e)
@@ -102,8 +103,8 @@ class Album_Controller extends Admin_Website_Controller
 		if ( ! $album->id)
 			Event::run('system.404');
 
-		javascript::add(array('jquery-ui', 'photo_admin_effects'));
-		stylesheet::add(array('photo_gallery'));
+		javascript::add(array('jquery-ui.js', 'photo_admin_effects.js'));
+		stylesheet::add(array('photo_gallery.css'));
 
 		$this->template->title = $album->album_name;
 		$this->template->heading = $album->album_name;
@@ -115,7 +116,7 @@ class Album_Controller extends Admin_Website_Controller
 	
 	public function reorder_process()
 	{
-		if (Session::instance()->get('image_csrf', NULL) == $this->input->get('csrf_token', ''))
+		if (Session::instance()->get('image_csrf', NULL) == Input::instance()->get('csrf_token', ''))
 		{
 			Auto_Modeler_ORM::factory('photo')->batch_reorder($_GET['photo']);
 			die('<p>Reorder Successful!</p>');

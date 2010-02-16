@@ -1,4 +1,4 @@
-<?php
+<?php defined('SYSPATH') or die('No direct script access.');
 
 abstract class Admin_Website_Controller extends Photo_Website_Controller {
 

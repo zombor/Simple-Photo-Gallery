@@ -19,8 +19,6 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	protected $rules = array();
 	protected $callbacks = array();
 
-	protected $aliases = array();
-
 	protected $validation = array();
 
 	protected $validated = FALSE;
@@ -34,7 +32,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 		if ($id != NULL)
 		{
 			// try and get a row with this ID
-			$data = db::builder()->from($this->table_name)->where('id', '=', $id)->execute($this->db)->as_array();
+			$data = db::build()->select('*')->from($this->table_name)->where('id', '=', $id)->execute($this->db)->as_array();
 
 			// try and assign the data
 			if (count($data) == 1 AND $data = $data->current())
@@ -48,20 +46,17 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	// Magic __get() method
 	public function __get($key)
 	{
-		if (isset($this->aliases[$key]))
-			$key = $this->aliases[$key];
-
 		return isset($this->data[$key]) ? $this->data[$key] : NULL;
 	}
 
 	// Magic __set() method
 	public function __set($key, $value)
 	{
-		if (isset($this->aliases[$key]))
-			$key = $this->aliases[$key];
-
 		if (array_key_exists($key, $this->data))
+		{
 			$this->data[$key] = $value;
+			$this->validated = FALSE;
+		}
 	}
 
 	public function __sleep()
@@ -95,9 +90,6 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	{
 		foreach ($data as $key => $value)
 		{
-			if (isset($this->aliases[$key]))
-				$key = $this->aliases[$key];
-
 			if (array_key_exists($key, $this->data))
 				$this->$key = $value;
 		}
@@ -108,9 +100,9 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 		return $this->validation != NULL ? $this->validation->errors($lang) : array();
 	}
 
-	public function valid($extra_data = array(), $extra_methods = array())
+	public function valid($validation = NULL)
 	{
-		$data = Validation::factory(array_merge($extra_data, $this->data))->pre_filter('trim');
+		$data = $validation instanceof Validation ? $validation->copy($validation->as_array()+$this->data) : Validation::factory($this->data)->pre_filter('trim');
 
 		foreach ($this->rules as $field => $rule)
 		{
@@ -121,10 +113,6 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 		foreach ($this->callbacks as $field => $callback)
 			$data->add_callbacks($field, array($this, $callback));
 
-		// Process any custom user defined rules. Non-model field validation would go here.
-		foreach ($extra_methods as $validation_function)
-			$this->$validation_function($data);
-
 		if ($data->validate())
 		{
 			$this->validation = NULL;
@@ -134,27 +122,30 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 		{
 			$this->validation = $data;
 			$errors = View::factory('form_errors')->set(array('errors' => $data->errors($this->lang)));
-			return $errors->render();
+			return array('string' => $errors->render(), 'errors' => $data->errors($this->lang));
 		}
 	}
 
 	// Saves the current object
-	public function save()
+	public function save($validation = NULL)
 	{
-		$status = $this->validated ? TRUE : $this->valid();
+		$status = $this->validated ? TRUE : $this->valid($validation);
 
 		if ($status === TRUE)
 		{
 			if ($this->data['id']) // Do an update
-				return count(db::update($this->table_name, array_diff_assoc($this->data, array('id' => $this->data['id'])), array('id' => $this->data['id'])));
+			{
+				//die(Kohana::debug());
+				return count(db::update($this->table_name, array_diff_assoc($this->data, array('id' => $this->data['id'])), array(array('id', '=', $this->data['id'])))->execute($this->db));
+			}
 			else // Do an insert
 			{
-				$id = db::insert($this->table_name, $this->data)->insert_id();
+				$id = db::insert($this->table_name, $this->data)->execute($this->db)->insert_id();
 				return ($this->data['id'] = $id);
 			}
 		}
 
-		throw new Kohana_User_Exception('auto_modeler.validation_error', $status);
+		throw new Auto_Modeler_Exception('auto_modeler.validation_error', $status['string'], $status['errors']);
 	}
 
 	// Deletes the current record and destroys the object
@@ -162,7 +153,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	{
 		if ($this->data['id'])
 		{
-			return db::delete($this->table_name, array('id' => $this->data['id']));
+			return db::delete($this->table_name, array(array('id', '=', $this->data['id'])))->execute($this->db);
 		}
 	}
 
@@ -171,7 +162,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	// $direction - the direction to sort
 	public function fetch_all($order_by = 'id', $direction = 'ASC')
 	{
-		return db::builder()->from($this->table_name)->order_by($order_by, $direction)->execute($this->db)->as_object(inflector::singular(ucwords($this->table_name)).'_Model');
+		return db::build()->select('*')->from($this->table_name)->order_by($order_by, $direction)->execute($this->db)->as_object(inflector::singular(ucwords($this->table_name)).'_Model');
 	}
 
 	// Does a basic search on the table.
@@ -182,7 +173,7 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 	public function fetch_where($where = array(), $order_by = 'id', $direction = 'ASC', $type = 'and')
 	{
 		$function = $type.'_where';
-		return db::builder()->from($this->table_name)->$function($where)->order_by($order_by, $direction)->execute($this->db)->as_object(inflector::singular(ucwords($this->table_name)).'_Model');
+		return db::build()->select('*')->from($this->table_name)->$function($where)->order_by($order_by, $direction)->execute($this->db)->as_object(inflector::singular(ucwords($this->table_name)).'_Model');
 	}
 
 	// Returns an associative array to use in dropdowns and other widgets
@@ -216,18 +207,12 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 
 	public function has_attribute($key)
 	{
-		if (isset($this->aliases[$key]))
-			$key = $this->aliases[$key];
-
 		return array_key_exists($key, $this->data);
 	}
 
 	// Array Access Interface
 	public function offsetExists($key)
 	{
-		if (isset($this->aliases[$key]))
-			$key = $this->aliases[$key];
-
 		return array_key_exists($key, $this->data);
 	}
 
@@ -243,9 +228,17 @@ class Auto_Modeler_Core extends Model implements ArrayAccess
 
 	public function offsetUnset($key)
 	{
-		if (isset($this->aliases[$key]))
-			$key = $this->aliases[$key];
-
 		$this->data[$key] = NULL;
+	}
+}
+
+class Auto_Modeler_Exception extends Kohana_User_Exception
+{
+	public $errors = array();
+
+	public function __construct($title, $message, $errors)
+	{
+		parent::__construct($title, $message);
+		$this->errors = $errors;
 	}
 }

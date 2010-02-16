@@ -1,5 +1,5 @@
 <?php $count = 0?><div id="photo_gallery_shell">
-<p class="page_links">Page: <?php for ($i = 1; $i <= $num_pages; $i++):?><?=html::anchor('album/view/'.$album->url_name.'?page='.$i, $i, array('class' => $this->input->get('page', 1) == $i ? 'active' : 'inactive'))?> <?php endfor;?></p>
+<p class="page_links">Page: <?php for ($i = 1; $i <= $num_pages; $i++):?><?=html::anchor('album/view/'.$album->url_name.'?page='.$i, $i, array('class' => Input::instance()->get('page', 1) == $i ? 'active' : 'inactive'))?> <?php endfor;?></p>
 <table id="photo_gallery">
 <?php foreach ($photos as $photo):?>
 <?php if ($count % 3 == 0):?>	<tr>
