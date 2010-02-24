@@ -47,4 +47,40 @@ class Album_Model extends Auto_Modeler_ORM {
 		$per_page = Kohana::config('photo_gallery.photos_per_page');
 		return db::build()->from('photos')->limit($per_page)->offset($page_number*$per_page-$per_page)->order_by('photo_order', 'ASC')->where('album_id', '=', $this->data['id'])->execute($this->db)->as_object('Photo_Model');
 	}
+
+	/**
+	 * ACL method that decides if a user can view this album
+	 *
+	 * @param object|bool $user
+	 * @return bool
+	 */
+	public function can_bew_viewed_by($user = FALSE)
+	{
+		// everyone can view albums
+		return TRUE;
+	}
+
+	/**
+	 * ACL method that decides if a user can update or delete this album
+	 *
+	 * @param object|bool $user
+	 * @return bool
+	 */
+	public function can_be_edited_by($user = FALSE)
+	{
+		// admins can edit albums
+		return $user !== FALSE AND $user->has('role', 'admin');
+	}
+
+	/**
+	 * ACL method that decides if a user can create albums
+	 *
+	 * @param object|bool $user
+	 * @return bool
+	 */
+	public static function can_be_created_by($user = FALSE)
+	{
+		// admins can create albums
+		return $user !== FALSE AND $user->has('role', 'admin');
+	}
 }
