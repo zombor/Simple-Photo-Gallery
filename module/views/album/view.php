@@ -13,7 +13,7 @@
 			<div class="caption">
 				<p><?=$photo->photo_name?></p>
 				<p><?=$photo->photo_description?></p>
-			<?php if (Auth::instance()->logged_in('admin')):?><br />
+			<?php if ($photo->can_be_edited_by($user)):?><br />
 			<?=html::anchor('admin/photo/edit/'.$album->url_name.'/'.$photo->id,
 				html::image('images/fam_silk/wrench_orange.png',
 				array('alt' => 'Edit', 'title' => 'Edit')))?>
@@ -27,6 +27,6 @@
 <?php endif;?> 
 <?php endforeach;?>
 </table>
-<?php if (Auth::instance()->logged_in('admin')):?><h2 style="clear: both;"><?=html::anchor('admin/photo/add/'.$album->id, 'Add photo here')?></h2>
+<?php if ($album->can_be_edited_by($user)):?><h2 style="clear: both;"><?=html::anchor('admin/photo/add/'.$album->id, 'Add photo here')?></h2>
 <h2><?=html::anchor('admin/album/reorder/'.$album->id, 'Reorder Photos In This Album')?></h2><?php endif;?>
 </div>

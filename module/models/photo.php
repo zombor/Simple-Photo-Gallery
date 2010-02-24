@@ -104,4 +104,28 @@ class Photo_Model extends Auto_Modeler_ORM {
 				$array->add_error($field, 'filename_exists');
 		}
 	}
+
+	/**
+	 * ACL method that decides if a user can view this photo
+	 *
+	 * @param object|bool $user
+	 * @return bool
+	 */
+	public function can_bew_viewed_by($user = FALSE)
+	{
+		// everyone can view images
+		return TRUE;
+	}
+
+	/**
+	 * ACL method that decides if a user can update or delete this photo
+	 *
+	 * @param object|bool $user
+	 * @return bool
+	 */
+	public function can_be_edited_by($user = FALSE)
+	{
+		// admins can edit albums
+		return $user !== FALSE AND $user->has('role', 'admin');
+	}
 }
