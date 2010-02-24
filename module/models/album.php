@@ -12,35 +12,35 @@ class Album_Model extends Auto_Modeler_ORM {
 	protected $rules = array('album_name' => array('required'),
 	                         'album_order' => array('required', 'numeric'));
 
-						public function __construct($id = NULL)
-						{
-							parent::__construct();
+	public function __construct($id = NULL)
+	{
+		parent::__construct();
 
-							if ($id != NULL AND (ctype_digit($id) OR is_int($id)))
-							{
-								// try and get a row with this ID
-								$data = db::build()->select('*')->from($this->table_name)->where('id', '=', $id)->execute($this->db)->as_array();
+		if ($id != NULL AND (ctype_digit($id) OR is_int($id)))
+		{
+			// try and get a row with this ID
+			$data = db::build()->select('*')->from($this->table_name)->where('id', '=', $id)->execute($this->db)->as_array();
 
-								// try and assign the data
-								if (count($data) == 1 AND $data = $data->current())
-								{
-									foreach ($data as $key => $value)
-										$this->data[$key] = $value;
-								}
-							}
-							else if ($id != NULL AND is_string($id))
-							{
-								// try and get a row with this username/email
-								$data = db::build()->select('*')->from($this->table_name)->where(array('url_name', '=', $id))->execute($this->db)->as_array();
+			// try and assign the data
+			if (count($data) == 1 AND $data = $data->current())
+			{
+				foreach ($data as $key => $value)
+					$this->data[$key] = $value;
+			}
+		}
+		elseif ($id != NULL AND is_string($id))
+		{
+			// try and get a row with this username/email
+			$data = db::build()->select('*')->from($this->table_name)->where(array('url_name', '=', $id))->execute($this->db)->as_array();
 
-								// try and assign the data
-								if (count($data) == 1 AND $data = $data->current())
-								{
-									foreach ($data as $key => $value)
-										$this->data[$key] = $value;
-								}
-							}
-						}
+			// try and assign the data
+			if (count($data) == 1 AND $data = $data->current())
+			{
+				foreach ($data as $key => $value)
+					$this->data[$key] = $value;
+			}
+		}
+	}
 
 	public function find_photos($page_number)
 	{
