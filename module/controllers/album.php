@@ -37,6 +37,7 @@ class Album_Controller extends Photo_Website_Controller
 			->bind('photos', $photos)
 			->bind('album', $album)
 			->bind('num_pages', $num_pages)
+			->bind('page_num', $page_num)
 			->bind('user', $user);
 
 		$photos = $album->find_photos($page_num);
