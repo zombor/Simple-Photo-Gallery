@@ -8,9 +8,11 @@ class Photo_Controller extends Admin_Website_Controller
 		$album = new Album_Model($album);
 		$photo = new Photo_Model;
 
-		$this->template->content = new View('admin/photo/form');
-		$this->template->content->errors = '';
-		$this->template->content->action = 'Create';
+		$this->template->content = View::factory('admin/photo/form')
+			->bind('errors', $errors)
+			->bind('photo', $photo)
+			->bind('album', $album)
+			->set('action', 'Create');
 
 		if ($_POST)
 		{
@@ -33,11 +35,9 @@ class Photo_Controller extends Admin_Website_Controller
 			}
 			catch (Kohana_User_Exception $e)
 			{
-				$this->template->content->errors = $e;
+				$errors = $e;
 			}
 		}
-
-		$this->template->content->photo = $photo;
 	}
 
 	public function edit($album_url, $photo)
@@ -47,9 +47,10 @@ class Photo_Controller extends Admin_Website_Controller
 		if ( ! $photo->id)
 			Event::run('system.404');
 
-		$this->template->content = new View('admin/photo/form');
-		$this->template->content->errors = '';
-		$this->template->content->action = 'Edit';
+		$this->template->content = View::factory('admin/photo/form')
+			->bind('errors', $errors)
+			->bind('photo', $photo)
+			->set('action', 'Edit');
 
 		if ($_POST)
 		{
@@ -64,6 +65,7 @@ class Photo_Controller extends Admin_Website_Controller
 
 					$photo->photo_filename = $_FILES['photo']['name'];
 
+					// @TODO: This should be done in the model - Zeelot
 					// Create a thumbnail and resized version
 					$image = new Image($_FILES['photo']['tmp_name']);
 					$image->resize(Kohana::config('photo_gallery.image_width'), Kohana::config('photo_gallery.image_height'), Image::AUTO);
@@ -79,11 +81,9 @@ class Photo_Controller extends Admin_Website_Controller
 			}
 			catch (Kohana_User_Exception $e)
 			{
-				$this->template->content->errors = $e;
+				$errors = $e;
 			}
 		}
-
-		$this->template->content->photo = $photo;
 	}
 
 	public function delete($album_url, $photo)

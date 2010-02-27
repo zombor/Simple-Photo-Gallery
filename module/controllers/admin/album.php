@@ -12,11 +12,13 @@ class Album_Controller extends Admin_Website_Controller
 
 	public function create()
 	{
-		$album = new Album_Model;
-		$this->template->content = new View('admin/album/form');
-		$this->template->content->errors = '';
-		$this->template->content->action = 'Create';
+		$this->template->content = View::factory('admin/album/form')
+			->bind('album'. $album)
+			->bind('errors', $errors)
+			->set('action', 'Create');
 		
+		$album = new Album_Model;
+
 		if ($_POST)
 		{
 			try
@@ -30,11 +32,9 @@ class Album_Controller extends Admin_Website_Controller
 			}
 			catch (Kohana_User_Exception $e)
 			{
-				$this->template->content->errors = $e;
+				$errors = $e;
 			}
 		}
-		
-		$this->template->content->album = $album;
 	}
 
 	public function edit($album_id = NULL)
@@ -43,9 +43,10 @@ class Album_Controller extends Admin_Website_Controller
 		if ( ! $album->id)
 			Event::run('system.404');
 
-		$this->template->content = new View('admin/album/form');
-		$this->template->content->errors = '';
-		$this->template->content->action = 'Edit';
+		$this->template->content = View::factory('admin/album/form')
+			->bind('album', $album)
+			->bind('errors', $errors)
+			->set('action', 'Edit');
 		
 		if ($_POST)
 		{
@@ -57,6 +58,7 @@ class Album_Controller extends Admin_Website_Controller
 
 				$album->save();
 
+				// @TODO: This should be done in the model - Zeelot
 				// Rename the album folder too
 				rename(APPPATH.'views/media/photos/'.url::title($old_name), APPPATH.'views/media/photos/'.$album->url_name);
 
@@ -64,11 +66,9 @@ class Album_Controller extends Admin_Website_Controller
 			}
 			catch (Kohana_User_Exception $e)
 			{
-				$this->template->content->errors = $e;
+				$errors = $e;
 			}
 		}
-		
-		$this->template->content->album = $album;
 	}
 
 	public function delete($album_id = NULL)
@@ -79,7 +79,7 @@ class Album_Controller extends Admin_Website_Controller
 
 		if(isset($_POST['confirm']))
 		{
-
+			// @TODO: This should be done in the model - Zeelot
 			// Delete all the files for the images in this album
 			foreach ($album->find_related('photos') as $photo)
 			{
@@ -94,6 +94,7 @@ class Album_Controller extends Admin_Website_Controller
 		{
 			url::redirect('admin/album/index');
 		}
+
 		$this->template->content = View::factory('admin/confirm');
 	}
 
